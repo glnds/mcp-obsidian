@@ -616,13 +616,39 @@ class RecentChangesToolHandler(ToolHandler):
         limit = args.get("limit", 10)
         if not isinstance(limit, int) or limit < 1:
             raise RuntimeError(f"Invalid limit: {limit}. Must be a positive integer")
-            
+
         days = args.get("days", 90)
         if not isinstance(days, int) or days < 1:
             raise RuntimeError(f"Invalid days: {days}. Must be a positive integer")
 
         api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
         results = api.get_recent_changes(limit, days)
+
+        return [
+            TextContent(
+                type="text",
+                text=json.dumps(results, indent=2)
+            )
+        ]
+
+class GetTagsToolHandler(ToolHandler):
+    def __init__(self):
+        super().__init__("obsidian_get_tags")
+
+    def get_tool_description(self):
+        return Tool(
+            name=self.name,
+            description="Get all tags from the vault with their occurrence counts.",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        )
+
+    def run_tool(self, args: dict) -> Sequence[TextContent | ImageContent | EmbeddedResource]:
+        api = obsidian.Obsidian(api_key=api_key, host=obsidian_host)
+        results = api.get_tags()
 
         return [
             TextContent(

@@ -252,11 +252,11 @@ class Obsidian():
     
     def get_recent_changes(self, limit: int = 10, days: int = 90) -> Any:
         """Get recently modified files in the vault.
-        
+
         Args:
             limit: Maximum number of files to return (default: 10)
             days: Only include files modified within this many days (default: 90)
-            
+
         Returns:
             List of recently modified files with metadata
         """
@@ -267,16 +267,16 @@ class Obsidian():
             "SORT file.mtime DESC",
             f"LIMIT {limit}"
         ]
-        
+
         # Join with proper DQL line breaks
         dql_query = "\n".join(query_lines)
-        
+
         # Make the request to search endpoint
         url = f"{self.get_base_url()}/search/"
         headers = self._get_headers() | {
             'Content-Type': 'application/vnd.olrapi.dataview.dql+txt'
         }
-        
+
         def call_fn():
             response = requests.post(
                 url,
@@ -285,6 +285,21 @@ class Obsidian():
                 verify=self.verify_ssl,
                 timeout=self.timeout
             )
+            response.raise_for_status()
+            return response.json()
+
+        return self._safe_call(call_fn)
+
+    def get_tags(self) -> Any:
+        """Get all tags from the vault with occurrence counts.
+
+        Returns:
+            Dictionary mapping tag names to their occurrence counts
+        """
+        url = f"{self.get_base_url()}/tags"
+
+        def call_fn():
+            response = requests.get(url, headers=self._get_headers(), verify=self.verify_ssl, timeout=self.timeout)
             response.raise_for_status()
             return response.json()
 
